@@ -53,3 +53,8 @@ Para los esquemas de validación:
 $ npm install joi
 ```
 
+Para la gestión de microservicios:
+
+```bash
+$ npm i --save @nestjs/microservices
+```
