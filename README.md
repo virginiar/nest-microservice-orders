@@ -24,7 +24,13 @@ $ npm install
 
 4. Crear un archivo ```.env``` basado en ```.env.template```.
 
-5. Ejecutar el proyecto
+5. Levantar la base de datos
+
+```bash
+$ docker compose up -d
+```
+
+6. Ejecutar el proyecto
 
 ```bash
 $ npm run start:dev
