@@ -81,3 +81,9 @@ $ npm install @prisma/client
 $ npx prisma generate
 $ npm install @prisma/adapter-pg
 ```
+
+Para las validaciones de datos se utilizan:
+
+```bash
+$ npm install class-validator class-transformer
+```
