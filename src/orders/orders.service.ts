@@ -1,5 +1,6 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { PRODUCT_SERVICE } from '../config';
 import {
@@ -7,7 +8,6 @@ import {
   CreateOrderDto,
   OrderPaginationDto,
 } from './dto';
-import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService {
@@ -21,14 +21,71 @@ export class OrdersService {
   }
 
   async create(createOrderDto: CreateOrderDto) {
-    // return this.prisma.order.create({
-    //   data: createOrderDto,
-    // });
-    const ids = [5, 6, 1000];
-    const products: any[] = await firstValueFrom(
-      this.productsClient.send({ cmd: 'validate_products' }, ids),
-    );
-    return products;
+    try {
+      //1 Confirmar los ids de los productos
+      const productIds = createOrderDto.items.map((item) => item.productId);
+      const products: any[] = await firstValueFrom(
+        this.productsClient.send({ cmd: 'validate_products' }, productIds),
+      );
+
+      //2. Cálculos de los valores
+      const totalAmount = createOrderDto.items.reduce((acc, orderItem) => {
+        const price = products.find(
+          (product) => product.id === orderItem.productId,
+        ).price;
+        return acc + price * orderItem.quantity;
+      }, 0);
+
+      const totalItems = createOrderDto.items.reduce((acc, orderItem) => {
+        return acc + orderItem.quantity;
+      }, 0);
+
+      //3. Crear una transacción de base de datos
+      const order = await this.prisma.order.create({
+        data: {
+          totalAmount: totalAmount,
+          totalItems: totalItems,
+          OrderItem: {
+            createMany: {
+              data: createOrderDto.items.map((orderItem) => {
+                const product = products.find((p) => p.id === orderItem.productId);
+                return {
+                  price: product!.price,
+                  productId: orderItem.productId,
+                  quantity: orderItem.quantity,
+                };
+              }),
+            },
+          },
+        },
+        include: {
+          OrderItem: {
+            select: {
+              price: true,
+              quantity: true,
+              productId: true,
+            },
+          },
+        },
+      });
+
+      return {
+        ...order,
+        OrderItem: order.OrderItem.map((orderItem) => ({
+          ...orderItem,
+          name: products.find((product) => product.id === orderItem.productId)
+            .name,
+        })),
+      };
+    } catch (error) {
+      // CORRECCIÓN: Si ya es una RpcException, relánzala para no perder el mensaje original
+      //if (error instanceof RpcException) throw error;
+
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Check logs',
+      });
+    }
   }
 
   async findAll(orderPaginationDto: OrderPaginationDto) {
