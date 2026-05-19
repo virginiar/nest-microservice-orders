@@ -22,13 +22,13 @@ export class OrdersService {
 
   async create(createOrderDto: CreateOrderDto) {
     try {
-      //1 Confirmar los ids de los productos
+      // 1. Confirmar los ids de los productos
       const productIds = createOrderDto.items.map((item) => item.productId);
       const products: any[] = await firstValueFrom(
         this.productsClient.send({ cmd: 'validate_products' }, productIds),
       );
 
-      //2. Cálculos de los valores
+      // 2. Cálculos de los valores
       const totalAmount = createOrderDto.items.reduce((acc, orderItem) => {
         const price = products.find(
           (product) => product.id === orderItem.productId,
@@ -40,7 +40,7 @@ export class OrdersService {
         return acc + orderItem.quantity;
       }, 0);
 
-      //3. Crear una transacción de base de datos
+      // 3. Crear una transacción de base de datos
       const order = await this.prisma.order.create({
         data: {
           totalAmount: totalAmount,
@@ -117,6 +117,15 @@ export class OrdersService {
   async findOne(id: string) {
     const order = await this.prisma.order.findFirst({
       where: { id },
+      include: {
+        OrderItem: {
+          select: {
+            price: true,
+            quantity: true,
+            productId: true,
+          },
+        },
+      },
     });
 
     if (!order) {
@@ -126,7 +135,19 @@ export class OrdersService {
       });
     }
 
-    return order;
+    const productIds = order.OrderItem.map((orderItem) => orderItem.productId);
+    const products: any[] = await firstValueFrom(
+      this.productsClient.send({ cmd: 'validate_products' }, productIds),
+    );
+
+    return {
+      ...order,
+      OrderItem: order.OrderItem.map((orderItem) => ({
+        ...orderItem,
+        name: products.find((product) => product.id === orderItem.productId)
+          .name,
+      })),
+    };
   }
 
   async changeStatus(changeOrderStatusDto: ChangeOrderStatusDto) {

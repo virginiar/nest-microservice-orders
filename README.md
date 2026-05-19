@@ -50,6 +50,7 @@ En este repositorio se trabajan los siguientes aspectos de Nest:
 -	Nest resource para microservicios
 -	Paginaciones y extensiones de DTOs
 -	Creación y cambio de estado de la orden
+- Creación de la orden y su detalle
 
 ## Librerías utilizadas
 
