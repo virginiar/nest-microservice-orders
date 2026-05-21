@@ -88,3 +88,9 @@ Para las validaciones de datos se utilizan:
 ```bash
 $ npm install class-validator class-transformer
 ```
+
+Para utilizar NATS para las comunicaciones del microservicio:
+
+```bash
+$ npm i --save nats
+```
