@@ -14,6 +14,7 @@ Basado en el curso de "NestJs + Microservicios: Aplicaciones escalables y modula
 ```bash
 $ npm i -g @nestjs/cli
 ```
+
 2. Clonar el repositorio
 
 3. Instalar las dependencias
