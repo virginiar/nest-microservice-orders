@@ -16,9 +16,10 @@ export class OrdersService {
   }
 
   create(createOrderDto: CreateOrderDto) {
-    return this.prisma.order.create({
-      data: createOrderDto,
-    });
+    // return this.prisma.order.create({
+    //   data: createOrderDto,
+    // });
+    return 'Orders microservice: {createOrderDto}';
   }
 
   async findAll(orderPaginationDto: OrderPaginationDto) {
