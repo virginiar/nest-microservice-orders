@@ -11,7 +11,9 @@ export class OrdersService {
   }
 
   create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+    return this.prisma.order.create({
+      data: createOrderDto,
+    });
   }
 
   findAll() {
