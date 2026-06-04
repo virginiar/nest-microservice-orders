@@ -30,7 +30,13 @@ $ npm install
 $ docker compose up -d
 ```
 
-6. Ejecutar el proyecto
+6. Generar el cliente Prisma
+
+```bash
+$ npx prisma generate
+```
+
+7. Ejecutar el proyecto
 
 ```bash
 $ npm run start:dev
@@ -63,4 +69,15 @@ Para la gestión de microservicios:
 
 ```bash
 $ npm i --save @nestjs/microservices
+```
+
+La conexión de la base de datos se realiza con Prisma:
+```bash
+$ npm install prisma --save-dev
+$ npx prisma init
+$ npx prisma migrate dev --name init
+
+$ npm install @prisma/client
+$ npx prisma generate
+$ npm install @prisma/adapter-pg
 ```
