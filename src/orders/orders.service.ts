@@ -8,6 +8,7 @@ import {
   OrderPaginationDto,
 } from './dto';
 import { NATS_SERVICE } from '../config';
+import { OrderWithProducts } from './interface/order-with-produts.interface';
 
 @Injectable()
 export class OrdersService {
@@ -51,7 +52,9 @@ export class OrdersService {
           OrderItem: {
             createMany: {
               data: createOrderDto.items.map((orderItem) => {
-                const product = products.find((p) => p.id === orderItem.productId);
+                const product = products.find(
+                  (p) => p.id === orderItem.productId,
+                );
                 return {
                   price: product!.price,
                   productId: orderItem.productId,
@@ -165,5 +168,21 @@ export class OrdersService {
       where: { id },
       data: { status: status },
     });
+  }
+
+  async createPaymentSession(order: OrderWithProducts) {
+    const paymentSession = await firstValueFrom(
+      this.client.send('create.payment.session', {
+        orderId: order.id,
+        currency: 'usd',
+        items: order.OrderItem.map((item) => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+      }),
+    );
+
+    return paymentSession;
   }
 }
